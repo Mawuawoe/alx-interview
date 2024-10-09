@@ -11,6 +11,10 @@ You can assume n will be always an integer
 
 
 def pascal_triangle(n):
+    """
+    function return the pascal triangle
+    n : rep the number of rows
+    """
     pascal_lsit = []
     if (n <= 0):
         return pascal_lsit
