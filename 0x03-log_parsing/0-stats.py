@@ -3,61 +3,47 @@
 a script that reads stdin line by line and computes metrics:
 """
 import sys
-import signal
 
+# store the count of all status codes in a dictionary
+status_codes_dict = {'200': 0, '301': 0, '400': 0, '401': 0, '403': 0,
+                     '404': 0, '405': 0, '500': 0}
 
-# Initialize global counters and dictionaries
-total_file_size = 0
-status_counts = {code: 0 for code in [200, 301, 400, 401, 403, 404, 405, 500]}
-line_count = 0
+total_size = 0
+count = 0  # keep count of the number lines counted
 
-
-def print_stats():
-    """Print the current statistics."""
-    print(f"File size: {total_file_size}")
-    for code in sorted(status_counts.keys()):
-        if status_counts[code] > 0:
-            print(f"{code}: {status_counts[code]}")
-
-
-def process_line(line):
-    """Process a single line to extract metrics."""
-    global total_file_size, status_counts, line_count
-
-    parts = line.split()
-    if len(parts) != 7:
-        return  # Skip if the line format is incorrect
-
-    try:
-        # Parse the status code and file size
-        status_code = int(parts[-2])
-        file_size = int(parts[-1])
-
-        # Update total file size and status code counts
-        total_file_size += file_size
-        if status_code in status_counts:
-            status_counts[status_code] += 1
-
-        line_count += 1
-    except (ValueError, IndexError):
-        pass  # Skip lines with parsing issues
-
-
-def handle_interrupt(signal, frame):
-    """Handle keyboard interrupt (CTRL + C)."""
-    print_stats()
-    sys.exit(0)
-
-
-# Set up the interrupt handler
-signal.signal(signal.SIGINT, handle_interrupt)
-
-# Read input line by line
 try:
     for line in sys.stdin:
-        process_line(line)
-        if line_count % 10 == 0:
-            print_stats()
-except KeyboardInterrupt:
-    print_stats()
-    sys.exit(0)
+        line_list = line.split(" ")
+
+        if len(line_list) > 4:
+            status_code = line_list[-2]
+            file_size = int(line_list[-1])
+
+            # check if the status code receive exists in the dictionary and
+            # increment its count
+            if status_code in status_codes_dict.keys():
+                status_codes_dict[status_code] += 1
+
+            # update total size
+            total_size += file_size
+
+            # update count of lines
+            count += 1
+
+        if count == 10:
+            count = 0  # reset count
+            print('File size: {}'.format(total_size))
+
+            # print out status code counts
+            for key, value in sorted(status_codes_dict.items()):
+                if value != 0:
+                    print('{}: {}'.format(key, value))
+
+except Exception as err:
+    pass
+
+finally:
+    print('File size: {}'.format(total_size))
+    for key, value in sorted(status_codes_dict.items()):
+        if value != 0:
+            print('{}: {}'.format(key, value))
