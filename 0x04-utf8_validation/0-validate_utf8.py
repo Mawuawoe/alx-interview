@@ -24,13 +24,13 @@ def validUTF8(data):
             if (byte & mask1) == 0:
                 # 1-byte character (ASCII), starts with 0xxxxxxx
                 continue
-            elif (byte & (mask1 >> 1)) == mask1:
+            elif (byte & (0b11100000)) == 0b11000000:
                 # 2-byte character, starts with 110xxxxx
                 num_bytes = 1
-            elif (byte & (mask1 >> 2)) == (mask1 | mask2):
+            elif (byte & 0b11110000) == 0b11100000:
                 # 3-byte character, starts with 1110xxxx
                 num_bytes = 2
-            elif (byte & (mask1 >> 3)) == (mask1 | mask2 | (mask2 >> 1)):
+            elif (byte & 0b11111000) == 0b11110000:
                 # 4-byte character, starts with 11110xxx
                 num_bytes = 3
             else:
